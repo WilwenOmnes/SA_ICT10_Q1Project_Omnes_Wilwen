@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order - Massage Services</title>
+
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.9.1/core.css">
+  <script type="module" src="https://pyscript.net/releases/2024.9.1/core.js"></script>
+
+  <link rel="stylesheet" href="order.css" />
+
+  <style>
+    body {
+      background: url('Order.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+    }
+
+    .center-box {
+      background: linear-gradient(to bottom right, rgba(255, 105, 180, 0.6), rgba(128, 0, 128, 0.6));
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 900px;
+      margin: 30px auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .order-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .left-column, .right-column {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .order-section {
+      margin-bottom: 20px;
+    }
+
+    .submit-btn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #6c5ce7;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #341f97;
+    }
+
+    .order-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .order-table th, .order-table td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: left;
+    }
+
+    #summary-box {
+      background: linear-gradient(to bottom right, #ffb6c1, #ff69b4);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, cyan, #00ffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    #summary-box p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="brand-container">
+      <img src="huh.png" alt="Logo" class="logo">
+      <a href="index.html" class="nav-brand">Massage Services</a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="Order.html" class="active">Order</a></li>
+      <li><a href="Contact.html">Contact</a></li>
+      <li><a href="About.html">About</a></li>
+      <li><a href="Reference.html">Reference</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="center-box">
+  <h2 class="gradient-text">Place Your Order</h2>
+
+  <div class="order-container">
+    <!-- Left Column: Services + Customer Info -->
+    <div class="left-column">
+      <div class="order-section services">
+        <h3>Available Massage Services</h3>
+        <table class="order-table">
+          <tr><th>Service</th><th>Price (₱)</th></tr>
+          <tr><td>30-min Relaxation Massage</td><td>300</td></tr>
+          <tr><td>60-min Deep Tissue Massage</td><td>600</td></tr>
+          <tr><td>90-min Full Body Massage</td><td>900</td></tr>
+          <tr><td>Foot Massage</td><td>250</td></tr>
+          <tr><td>Head & Shoulder Massage</td><td>200</td></tr>
+        </table>
+      </div>
+
+      <div class="order-section customer">
+        <h3>Customer Information</h3>
+        <form id="order-form" py-onSubmit="show_summary($event)">
+          <label for="name">Name:</label><br>
+          <input type="text" id="name" name="name" placeholder="Last Name, First Name, Middle I." required autocomplete="name"><br>
+
+
+          <label for="contact">Contact Number:</label><br>
+          <input type="tel" id="contact" name="contact" placeholder="0000-000-0000" maxlength="13" required autocomplete="tel"><br>
+
+          <label for="service">Select Service:</label><br>
+          <select id="service" name="service" required>
+            <option value="">--Choose a service--</option>
+            <option value="30-min Relaxation Massage">30-min Relaxation Massage</option>
+            <option value="60-min Deep Tissue Massage">60-min Deep Tissue Massage</option>
+            <option value="90-min Full Body Massage">90-min Full Body Massage</option>
+            <option value="Foot Massage">Foot Massage</option>
+            <option value="Head & Shoulder Massage">Head & Shoulder Massage</option>
+          </select><br>
+
+          <button type="submit" class="submit-btn">Submit Order</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="right-column">
+      <div class="order-section summary">
+        <h3 class="gradient-text">Order Summary</h3>
+        <div id="summary-box">
+          <p><i class="gradient-text">Your selected service, name, and contact number will appear here after submitting.</i></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>All rights reserved 2025</p>
+</footer>
+
+<script type="py">
+from js import document
+from pyodide.ffi import create_proxy
+
+prices = {
+    "30-min Relaxation Massage": 300,
+    "60-min Deep Tissue Massage": 600,
+    "90-min Full Body Massage": 900,
+    "Foot Massage": 250,
+    "Head & Shoulder Massage": 200
+}
+
+# Format contact number as 0000-000-0000
+def format_contact(event=None):
+    contact_input = document.getElementById("contact")
+    digits = ''.join(filter(str.isdigit, contact_input.value))[:11]
+    formatted = ''
+    for i, digit in enumerate(digits):
+        formatted += digit
+        if i == 3 or i == 6:
+            formatted += '-'
+    contact_input.value = formatted
+
+# Show summary in the page without redirect
+def update_summary(event=None):
+    name = document.getElementById("name").value
+    contact = document.getElementById("contact").value
+    service = document.getElementById("service").value
+    summary_box = document.getElementById("summary-box")
+
+    plain_digits = ''.join(filter(str.isdigit, contact))
+    if not name or not contact or not service or len(plain_digits) != 11:
+        summary_box.innerHTML = '<p style="color: yellow;">⚠️ Please fill out all fields correctly (contact must be exactly 11 digits).</p>'
+        return
+
+    price = prices.get(service, "N/A")
+    summary_box.innerHTML = f"""
+    <p class="gradient-text"><b>{name}</b> (Contact: <b>{contact}</b>) has chosen the service: <b>{service}</b></p>
+    <p class="gradient-text">Price: <b>₱{price}</b></p>
+    <p class="gradient-text">Pro cuddler Nazuna Nanakusa will contact you soon!!</p>
+    """
+
+# Prevent redirect and show summary
+def show_summary(event):
+    event.preventDefault()
+    update_summary()
+
+# Persistent proxies
+format_proxy = create_proxy(format_contact)
+summary_proxy = create_proxy(show_summary)
+update_proxy = create_proxy(update_summary)
+
+# Event listeners
+document.getElementById("contact").addEventListener("input", format_proxy)
+document.getElementById("name").addEventListener("input", update_proxy)
+document.getElementById("contact").addEventListener("input", update_proxy)
+document.getElementById("service").addEventListener("change", update_proxy)
+document.getElementById("order-form").addEventListener("submit", summary_proxy)
+</script>
+
+</body>
+</html>
